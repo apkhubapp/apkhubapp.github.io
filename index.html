@@ -79,11 +79,11 @@
               <p class="text-gray-500 text-[10px]">10.000+ Oy</p>
             </div>
             <div class="border-l border-gray-800 pl-4">
-              <span class="text-white font-bold text-sm">v1.9.0</span>
+              <span class="text-white font-bold text-sm">v2.5.0</span>
               <p class="text-gray-500 text-[10px]">Son Sürüm</p>
             </div>
             <div class="border-l border-gray-800 pl-4">
-              <span class="text-white font-bold text-sm">78.4 MB</span>
+              <span class="text-white font-bold text-sm">1.1 MB</span>
               <p class="text-gray-500 text-[10px]">APK Boyutu</p>
             </div>
             <div class="border-l border-gray-800 pl-4">
@@ -94,9 +94,9 @@
 
           <!-- Download Button -->
           <div class="flex flex-col sm:flex-row items-center gap-3">
-            <a id="downloadBtn" href="#" class="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-brand-green text-black font-extrabold text-base flex items-center justify-center gap-3 shadow-lg shadow-green-500/25 hover:scale-[1.02] active:scale-[0.98] transition">
+            <a id="downloadBtn" href="https://github.com/apkhubapp/apkhubapp.github.io/releases/download/V1.9.0/BlockpostTkss_v1.5.apk" class="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-brand-green text-black font-extrabold text-base flex items-center justify-center gap-3 shadow-lg shadow-green-500/25 hover:scale-[1.02] active:scale-[0.98] transition">
               <i class="fa-solid fa-download text-lg"></i>
-              <span>APK İndir (78.4 MB)</span>
+              <span>APK İndir (1.1 MB)</span>
             </a>
             <span class="text-xs text-gray-400">Android 5.0 ve üzeri için uygundur</span>
           </div>
@@ -139,9 +139,13 @@
             <span class="text-gray-500">Geliştirici:</span>
             <span>Tkss Studio</span>
           </div>
-          <div class="flex justify-between">
-            <span class="text-gray-500">Güncelleme:</span>
-            <span>Bugün</span>
+          <div class="flex justify-between border-b border-gray-800 pb-1.5">
+            <span class="text-gray-500">Sürüm:</span>
+            <span class="text-white font-mono">v2.5.0</span>
+          </div>
+          <div class="flex flex-col gap-1 pt-1">
+            <span class="text-gray-500">SHA-256 İmzası:</span>
+            <span class="text-[11px] font-mono text-green-400 bg-black/40 p-2 rounded-lg break-all select-all border border-gray-800">b9f6b313d5b0dc8db981fef16a78bac92eca8016860c460d586bab338c17bce0</span>
           </div>
         </div>
       </div>
@@ -173,11 +177,6 @@
     if (localStorage.getItem('apkhub_cookies')) {
       document.getElementById('cookieBanner').style.display = 'none';
     }
-
-    document.getElementById('downloadBtn').addEventListener('click', function(e) {
-      e.preventDefault();
-      alert('İndirme hazırlanıyor... APK dosyanızı GitHub Releases alanına yüklediğinizde doğrudan buradan indirilecektir.');
-    });
   </script>
 </body>
 </html>

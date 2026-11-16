@@ -33,6 +33,20 @@
       background: #475569;
     }
   </style>
+
+  <!-- SEO and social sharing previews (WhatsApp, Telegram, Discord, X) -->
+  <meta name="description" content="APKHub: Android oyun ve uygulamalarını keşfet, geliştirici profili oluştur ve APK sürümlerini yönet." />
+  <meta name="keywords" content="APKHub, Android APK, oyun, uygulama, APK indir, geliştirici" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="APKHub" />
+  <meta property="og:title" content="APKHub — Android uygulama ve oyun mağazası" />
+  <meta property="og:description" content="Android uygulamalarını keşfet, güvenlik raporlarını kontrol et ve kendi uygulamalarını yönet." />
+  <meta property="og:url" content="https://apkhubapp.github.io/" />
+  <meta property="og:image" content="https://apkhubapp.github.io/apkhub-preview.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="APKHub — Android uygulama ve oyun mağazası" />
+  <meta name="twitter:description" content="Android uygulamalarını keşfet, güvenlik raporlarını kontrol et ve kendi uygulamalarını yönet." />
+  <meta name="twitter:image" content="https://apkhubapp.github.io/apkhub-preview.png" />
 </head>
 <body class="min-h-screen flex flex-col custom-scrollbar selection:bg-emerald-500 selection:text-white">
 
@@ -99,6 +113,17 @@
           <i class="fa-solid fa-layer-group text-sm"></i>
           <span class="hidden sm:inline" data-i18n="btn_my_apps">Uygulamalarım</span>
           <span id="myAppsBadge" class="bg-emerald-500/20 text-emerald-400 text-[10px] px-1.5 py-0.5 rounded-full font-mono">1</span>
+        </button>
+
+        <!-- Geliştirici Hesabı Kur / Profil Yönetimi -->
+        <button
+          id="devAccountButton"
+          onclick="openDeveloperProfileModal()"
+          class="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sky-300 hover:text-sky-200 text-xs sm:text-sm font-bold px-3.5 py-2 rounded-xl transition shadow-sm"
+          title="Geliştirici hesabı kur"
+        >
+          <i class="fa-solid fa-user-gear text-sm"></i>
+          <span id="devAccountButtonText" class="hidden lg:inline">Geliştirici Hesabı Kur</span>
         </button>
 
         <!-- APKHub'a Uygulama Yayınla Butonu -->
@@ -263,12 +288,24 @@
           <a
             id="modalDownloadBtn"
             href="#"
+            onclick="handleDownloadClick(event)"
             target="_blank"
             class="flex-1 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black py-3.5 rounded-2xl text-center shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/40 transition flex items-center justify-center gap-2.5 text-sm"
           >
             <i class="fa-solid fa-download text-base"></i>
             <span data-i18n="btn_download_apk">APK İndir</span>
           </a>
+
+          <!-- VirusTotal rapor kontrolü: otomatik temiz sonucu iddia etmez -->
+          <button
+            id="virusScanButton"
+            onclick="openVirusScanModal()"
+            class="px-4 py-3.5 bg-slate-800 hover:bg-slate-700 text-sky-300 rounded-2xl font-bold transition border border-slate-700 text-xs sm:text-sm flex items-center justify-center gap-2"
+            title="VirusTotal güvenlik raporunu kontrol et"
+          >
+            <i class="fa-solid fa-shield-virus"></i>
+            <span data-i18n="btn_scan">Tara</span>
+          </button>
 
           <!-- Beğen Butonu -->
           <button
@@ -643,6 +680,58 @@
         </button>
       </div>
 
+    </div>
+  </div>
+
+  <!-- ==================== GELİŞTİRİCİ PROFİLİ MODALI ==================== -->
+  <div id="developerProfileModal" class="fixed inset-0 z-[60] bg-slate-950/85 backdrop-blur-sm hidden flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-slate-900 border border-slate-800 w-full max-w-2xl rounded-3xl shadow-2xl relative p-6 sm:p-8 my-8 max-h-[92vh] overflow-y-auto custom-scrollbar">
+      <button onclick="closeDeveloperProfileModal()" class="absolute top-5 right-5 w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
+      <div class="flex items-center gap-3 mb-2">
+        <div class="w-11 h-11 rounded-xl bg-sky-500/10 border border-sky-500/30 flex items-center justify-center text-sky-300 text-lg"><i class="fa-solid fa-user-gear"></i></div>
+        <div><h2 class="text-xl font-black text-white" data-ext="profileTitle">Geliştirici Hesabı Kur</h2><p class="text-xs text-slate-400" data-ext="profileSubtitle">Yayınlama öncesi geliştirici profilini tamamla.</p></div>
+      </div>
+      <div class="bg-amber-500/10 border border-amber-500/30 text-amber-200 rounded-2xl p-3 text-xs leading-relaxed my-4" data-ext="localProfileNotice">Bilgi: Bu GitHub Pages demosunda profil yalnızca bu tarayıcıda saklanır; gerçek giriş/hesap doğrulaması veya herkese açık yayınlama sağlamaz.</div>
+      <form id="developerProfileForm" onsubmit="saveDeveloperProfile(event)" class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+        <div><label class="block text-slate-300 font-bold mb-1" data-ext="profileStudioLabel">Geliştirici / Stüdyo adı *</label><input id="profileStudio" required maxlength="80" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-slate-100 outline-none focus:ring-1 focus:ring-sky-500" /></div>
+        <div><label class="block text-slate-300 font-bold mb-1" data-ext="profileContactLabel">İletişim e-postası *</label><input id="profileEmail" required type="email" maxlength="120" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-slate-100 outline-none focus:ring-1 focus:ring-sky-500" /></div>
+        <div><label class="block text-slate-300 font-bold mb-1" data-ext="profileCountryLabel">Ülke / Bölge *</label><input id="profileCountry" required maxlength="60" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-slate-100 outline-none focus:ring-1 focus:ring-sky-500" /></div>
+        <div><label class="block text-slate-300 font-bold mb-1" data-ext="profileTypeLabel">Geliştirici türü</label><select id="profileType" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-slate-100"><option value="indie">Bağımsız geliştirici</option><option value="studio">Oyun stüdyosu</option><option value="opensource">Açık kaynak</option><option value="publisher">Yayıncı</option></select></div>
+        <div><label class="block text-slate-300 font-bold mb-1" data-ext="profileWebsiteLabel">Web sitesi / portföy</label><input id="profileWebsite" type="url" placeholder="https://..." class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-slate-100 outline-none" /></div>
+        <div><label class="block text-slate-300 font-bold mb-1" data-ext="profileSupportLabel">Destek bağlantısı</label><input id="profileSupport" type="url" placeholder="https://..." class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-slate-100 outline-none" /></div>
+        <div><label class="block text-slate-300 font-bold mb-1" data-ext="profilePrivacyLabel">Gizlilik politikası bağlantısı</label><input id="profilePrivacy" type="url" placeholder="https://..." class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-slate-100 outline-none" /></div>
+        <div><label class="block text-slate-300 font-bold mb-1" data-ext="profileLogoLabel">Logo / profil görseli URL'si</label><input id="profileLogo" type="url" placeholder="https://..." class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-slate-100 outline-none" /></div>
+        <div><label class="block text-slate-300 font-bold mb-1" data-ext="profileSpecialtiesLabel">Uzmanlık alanları</label><input id="profileSpecialties" maxlength="120" placeholder="Örn. FPS, araçlar, eğitim" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-slate-100 outline-none" /></div>
+        <div><label class="block text-slate-300 font-bold mb-1" data-ext="profileContactPersonLabel">Yetkili / görünen kişi adı</label><input id="profileContactPerson" maxlength="80" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-slate-100 outline-none" /></div>
+        <div class="sm:col-span-2"><label class="block text-slate-300 font-bold mb-1" data-ext="profileBioLabel">Geliştirici hakkında *</label><textarea id="profileBio" required maxlength="500" rows="3" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-slate-100 outline-none focus:ring-1 focus:ring-sky-500"></textarea></div>
+        <label class="sm:col-span-2 flex items-start gap-2 text-slate-300 leading-relaxed"><input id="profileTerms" type="checkbox" required class="mt-0.5 accent-sky-500" /><span data-ext="profileTermsLabel">Uygulama içeriklerinin ve indirme bağlantılarının doğruluğundan sorumlu olduğumu; yanıltıcı güvenlik iddiası kullanmayacağımı kabul ediyorum. *</span></label>
+        <div class="sm:col-span-2 flex gap-2 pt-1"><button type="button" onclick="closeDeveloperProfileModal()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold py-3 rounded-xl" data-ext="cancel">İptal</button><button type="submit" class="flex-1 bg-sky-500 hover:bg-sky-400 text-slate-950 font-black py-3 rounded-xl" data-ext="saveProfile">Profili Kaydet</button></div>
+      </form>
+      <div id="developerProfileSummary" class="hidden mt-4 bg-slate-800/70 border border-slate-700 rounded-2xl p-4 text-xs text-slate-300"></div>
+    </div>
+  </div>
+
+  <!-- ==================== VIRUSTOTAL TARAMA / RAPOR BİLGİ MODALI ==================== -->
+  <div id="virusScanModal" class="fixed inset-0 z-[70] bg-slate-950/85 backdrop-blur-sm hidden flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-slate-900 border border-sky-500/30 w-full max-w-lg rounded-3xl shadow-2xl relative p-6 sm:p-7">
+      <button onclick="closeVirusScanModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
+      <div class="w-12 h-12 rounded-2xl bg-sky-500/10 border border-sky-500/30 text-sky-300 flex items-center justify-center text-xl mb-4"><i class="fa-solid fa-shield-virus"></i></div>
+      <h2 class="text-lg font-black text-white" data-ext="scanTitle">VirusTotal güvenlik kontrolü</h2>
+      <p class="text-xs text-slate-300 mt-2 leading-relaxed" data-ext="scanDisclaimer">APKHub statik bir sitedir ve VirusTotal'a otomatik dosya yükleyip sonuç alamaz. Bu nedenle burada “temiz” veya “zararlı” sonucu uydurulmaz.</p>
+      <div class="bg-slate-800/70 border border-slate-700 rounded-2xl p-4 mt-4 space-y-2 text-xs">
+        <div class="font-bold text-slate-100" data-ext="scanStepsTitle">Gerçek raporu kontrol etmek için</div>
+        <ol class="list-decimal list-inside text-slate-300 space-y-1.5">
+          <li data-ext="scanStep1">Aşağıdaki VirusTotal düğmesiyle tarama sayfasını aç.</li>
+          <li data-ext="scanStep2">APK dosyasını veya bağlantısını VirusTotal'a kendin gönder.</li>
+          <li data-ext="scanStep3">Sonuçları kontrol et; bilinmeyen sonuç güvenli olduğu anlamına gelmez.</li>
+        </ol>
+        <p class="text-amber-200 bg-amber-500/10 border border-amber-500/20 rounded-xl p-2.5" data-ext="scanPrivacy">Gizlilik: VirusTotal'a yüklenen dosyalar paylaşılabilir ve veri kümesine eklenebilir. Özel APK yüklemeden önce koşulları incele.</p>
+      </div>
+      <div class="flex flex-col sm:flex-row gap-2 mt-4">
+        <a id="virusTotalExternalLink" href="https://www.virustotal.com/gui/home/upload" target="_blank" rel="noopener noreferrer" class="flex-1 bg-sky-500 hover:bg-sky-400 text-slate-950 font-black py-3 rounded-xl text-center text-xs"><i class="fa-solid fa-arrow-up-right-from-square mr-1"></i><span data-ext="scanExternal">VirusTotal'da kontrol et</span></a>
+        <button onclick="downloadAfterScanNotice()" class="flex-1 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black py-3 rounded-xl text-xs" data-ext="downloadAnyway">Yine de APK'yı indir</button>
+      </div>
+      <p class="text-[10px] text-slate-500 mt-3" data-ext="scanNoApi">Otomatik sonuç ve dosya analizi için güvenli bir sunucu/API anahtarı gerekir; bu GitHub Pages sürümünde API anahtarı bulunmaz.</p>
     </div>
   </div>
 
@@ -1029,6 +1118,175 @@
       }
     };
 
+
+    Object.assign(translations.tr, {
+      btn_dev_account: "Geliştirici Hesabı Kur", btn_dev_profile: "Geliştirici Profili", btn_scan: "Virüs kontrolü",
+      profileTitle: "Geliştirici Hesabı Kur", profileSubtitle: "Yayınlama öncesi geliştirici profilini tamamla.",
+      localProfileNotice: "Bilgi: Bu GitHub Pages demosunda profil yalnızca bu tarayıcıda saklanır; gerçek giriş/hesap doğrulaması veya herkese açık yayınlama sağlamaz.",
+      profileStudioLabel: "Geliştirici / Stüdyo adı *", profileContactLabel: "İletişim e-postası *", profileCountryLabel: "Ülke / Bölge *", profileTypeLabel: "Geliştirici türü", profileWebsiteLabel: "Web sitesi / portföy", profileSupportLabel: "Destek bağlantısı", profilePrivacyLabel: "Gizlilik politikası bağlantısı", profileLogoLabel: "Logo / profil görseli URL'si", profileSpecialtiesLabel: "Uzmanlık alanları", profileContactPersonLabel: "Yetkili / görünen kişi adı", profileBioLabel: "Geliştirici hakkında *", profileTermsLabel: "Uygulama içeriklerinin ve indirme bağlantılarının doğruluğundan sorumlu olduğumu; yanıltıcı güvenlik iddiası kullanmayacağımı kabul ediyorum. *", saveProfile: "Profili Kaydet", cancel: "İptal",
+      profileTypeIndie: "Bağımsız geliştirici", profileTypeStudio: "Oyun stüdyosu", profileTypeOpen: "Açık kaynak", profileTypePublisher: "Yayıncı", profileSaved: "Geliştirici profili bu tarayıcıya kaydedildi.", profileRequired: "Yayınlamak için geliştirici profilini tamamla.",
+      scanTitle: "VirusTotal güvenlik kontrolü", scanDisclaimer: "APKHub statik bir sitedir ve VirusTotal'a otomatik dosya yükleyip sonuç alamaz. Bu nedenle burada “temiz” veya “zararlı” sonucu uydurulmaz.", scanStepsTitle: "Gerçek raporu kontrol etmek için", scanStep1: "Aşağıdaki VirusTotal düğmesiyle tarama sayfasını aç.", scanStep2: "APK dosyasını veya bağlantısını VirusTotal'a kendin gönder.", scanStep3: "Sonuçları kontrol et; bilinmeyen sonuç güvenli olduğu anlamına gelmez.", scanPrivacy: "Gizlilik: VirusTotal'a yüklenen dosyalar paylaşılabilir ve veri kümesine eklenebilir. Özel APK yüklemeden önce koşulları incele.", scanExternal: "VirusTotal'da kontrol et", downloadAnyway: "Yine de APK'yı indir", scanNoApi: "Otomatik sonuç ve dosya analizi için güvenli bir sunucu/API anahtarı gerekir; bu GitHub Pages sürümünde API anahtarı bulunmaz.", scanUnknown: "VirusTotal sonucu bu sayfada doğrulanmadı.",
+      appSourceNote: "Bu uygulama taranmadan sunuluyor. İndirmeden önce VirusTotal raporunu kontrol edin.", scanWarning: "Otomatik tarama sonucu yok; indirme kullanıcının tercihidir."
+    });
+    Object.assign(translations.en, {
+      btn_dev_account: "Set Up Developer Account", btn_dev_profile: "Developer Profile", btn_scan: "Safety check",
+      profileTitle: "Set Up Developer Account", profileSubtitle: "Complete a developer profile before publishing.",
+      localProfileNotice: "Note: On this GitHub Pages demo, the profile is stored only in this browser. It does not provide real login, verification, or public publishing.",
+      profileStudioLabel: "Developer / studio name *", profileContactLabel: "Contact email *", profileCountryLabel: "Country / region *", profileTypeLabel: "Developer type", profileWebsiteLabel: "Website / portfolio", profileSupportLabel: "Support link", profilePrivacyLabel: "Privacy policy link", profileLogoLabel: "Logo / profile image URL", profileSpecialtiesLabel: "Areas of expertise", profileContactPersonLabel: "Contact / public name", profileBioLabel: "About the developer *", profileTermsLabel: "I am responsible for app content and download links, and will not make misleading security claims. *", saveProfile: "Save Profile", cancel: "Cancel",
+      profileTypeIndie: "Indie developer", profileTypeStudio: "Game studio", profileTypeOpen: "Open source", profileTypePublisher: "Publisher", profileSaved: "Developer profile saved in this browser.", profileRequired: "Complete a developer profile before publishing.",
+      scanTitle: "VirusTotal safety check", scanDisclaimer: "APKHub is a static site and cannot automatically upload files to VirusTotal or retrieve results. This page will not invent a “clean” or “malicious” verdict.", scanStepsTitle: "To check a real report", scanStep1: "Open the VirusTotal page using the button below.", scanStep2: "Submit the APK file or URL to VirusTotal yourself.", scanStep3: "Review the report; an unknown result does not mean safe.", scanPrivacy: "Privacy: Files submitted to VirusTotal may be shared and added to its dataset. Review its terms before submitting private APKs.", scanExternal: "Check on VirusTotal", downloadAnyway: "Download APK anyway", scanNoApi: "Automatic analysis needs a secure server and API key; this GitHub Pages build has no API key.", scanUnknown: "The VirusTotal result has not been verified on this page.",
+      appSourceNote: "This app is offered without an automatic scan. Check its VirusTotal report before downloading.", scanWarning: "No automatic scan result is available; downloading is your choice."
+    });
+    Object.assign(translations.ru, {
+      btn_dev_account: "Создать аккаунт разработчика", btn_dev_profile: "Профиль разработчика", btn_scan: "Проверка безопасности",
+      profileTitle: "Создать аккаунт разработчика", profileSubtitle: "Заполните профиль разработчика перед публикацией.",
+      localProfileNotice: "Примечание: в демо на GitHub Pages профиль хранится только в этом браузере. Это не настоящая авторизация, проверка или общая публикация.",
+      profileStudioLabel: "Имя разработчика / студии *", profileContactLabel: "Контактный e-mail *", profileCountryLabel: "Страна / регион *", profileTypeLabel: "Тип разработчика", profileWebsiteLabel: "Сайт / портфолио", profileSupportLabel: "Ссылка поддержки", profilePrivacyLabel: "Ссылка политики конфиденциальности", profileLogoLabel: "URL логотипа / профиля", profileSpecialtiesLabel: "Специализация", profileContactPersonLabel: "Контактное / публичное имя", profileBioLabel: "О разработчике *", profileTermsLabel: "Я отвечаю за содержимое приложений и ссылки на загрузку и не буду делать ложных заявлений о безопасности. *", saveProfile: "Сохранить профиль", cancel: "Отмена",
+      profileTypeIndie: "Независимый разработчик", profileTypeStudio: "Игровая студия", profileTypeOpen: "Открытый исходный код", profileTypePublisher: "Издатель", profileSaved: "Профиль разработчика сохранён в этом браузере.", profileRequired: "Перед публикацией заполните профиль разработчика.",
+      scanTitle: "Проверка VirusTotal", scanDisclaimer: "APKHub — статический сайт и не может автоматически отправлять файлы в VirusTotal и получать результаты. Здесь не будет выдуманного заключения «чисто» или «опасно».", scanStepsTitle: "Чтобы проверить настоящий отчёт", scanStep1: "Откройте VirusTotal кнопкой ниже.", scanStep2: "Самостоятельно отправьте APK-файл или URL в VirusTotal.", scanStep3: "Проверьте отчёт; неизвестный результат не означает безопасность.", scanPrivacy: "Конфиденциальность: файлы, отправленные в VirusTotal, могут быть опубликованы и добавлены в набор данных. Изучите условия перед отправкой частного APK.", scanExternal: "Проверить в VirusTotal", downloadAnyway: "Всё равно скачать APK", scanNoApi: "Для автоматического анализа нужны защищённый сервер и API-ключ; в этой версии GitHub Pages ключа нет.", scanUnknown: "Результат VirusTotal не подтверждён на этой странице.",
+      appSourceNote: "Это приложение предлагается без автоматической проверки. Перед загрузкой проверьте отчёт VirusTotal.", scanWarning: "Автоматический результат проверки недоступен; решение о загрузке за вами."
+    });
+
+    // -------------------------------------------------------------
+    // 11. GELİŞTİRİCİ PROFİLİ (STATİK DEMO - YEREL TARAYICI)
+    // -------------------------------------------------------------
+    function getDeveloperProfile() {
+      try { return JSON.parse(localStorage.getItem("apkhub_dev_profile") || "null"); }
+      catch (e) { return null; }
+    }
+
+    function updateDeveloperAccountButton() {
+      const profile = getDeveloperProfile();
+      const text = document.getElementById("devAccountButtonText");
+      const button = document.getElementById("devAccountButton");
+      if (!text || !button) return;
+      const lang = translations[currentLang] || translations.tr;
+      text.innerText = profile && profile.studio ? `${lang.btn_dev_profile}: ${profile.studio}` : lang.btn_dev_account;
+      button.title = profile && profile.studio ? lang.btn_dev_profile : lang.btn_dev_account;
+    }
+
+    function openDeveloperProfileModal() {
+      const profile = getDeveloperProfile();
+      const form = document.getElementById("developerProfileForm");
+      if (profile) {
+        document.getElementById("profileStudio").value = profile.studio || "";
+        document.getElementById("profileEmail").value = profile.email || "";
+        document.getElementById("profileCountry").value = profile.country || "";
+        document.getElementById("profileType").value = profile.type || "indie";
+        document.getElementById("profileWebsite").value = profile.website || "";
+        document.getElementById("profileSupport").value = profile.support || "";
+        document.getElementById("profilePrivacy").value = profile.privacy || "";
+        document.getElementById("profileLogo").value = profile.logo || "";
+        document.getElementById("profileSpecialties").value = profile.specialties || "";
+        document.getElementById("profileContactPerson").value = profile.contactPerson || "";
+        document.getElementById("profileBio").value = profile.bio || "";
+        document.getElementById("profileTerms").checked = !!profile.acceptedTerms;
+      } else if (form) {
+        form.reset();
+      }
+      document.getElementById("developerProfileModal").classList.remove("hidden");
+    }
+
+    function closeDeveloperProfileModal() {
+      document.getElementById("developerProfileModal").classList.add("hidden");
+    }
+
+    function saveDeveloperProfile(event) {
+      event.preventDefault();
+      const profile = {
+        studio: document.getElementById("profileStudio").value.trim(),
+        email: document.getElementById("profileEmail").value.trim(),
+        country: document.getElementById("profileCountry").value.trim(),
+        type: document.getElementById("profileType").value,
+        website: document.getElementById("profileWebsite").value.trim(),
+        support: document.getElementById("profileSupport").value.trim(),
+        privacy: document.getElementById("profilePrivacy").value.trim(),
+        logo: document.getElementById("profileLogo").value.trim(),
+        specialties: document.getElementById("profileSpecialties").value.trim(),
+        contactPerson: document.getElementById("profileContactPerson").value.trim(),
+        bio: document.getElementById("profileBio").value.trim(),
+        acceptedTerms: document.getElementById("profileTerms").checked,
+        updatedAt: new Date().toISOString()
+      };
+      if (!profile.studio || !profile.email || !profile.country || !profile.bio || !profile.acceptedTerms) return;
+      localStorage.setItem("apkhub_dev_profile", JSON.stringify(profile));
+      closeDeveloperProfileModal();
+      updateDeveloperAccountButton();
+      const publishModal = document.getElementById("publishModal");
+      if (publishModal && publishModal.dataset.openAfterProfile === "true") {
+        publishModal.dataset.openAfterProfile = "false";
+        document.getElementById("pubDev").value = profile.studio;
+        publishModal.classList.remove("hidden");
+      }
+      alert((translations[currentLang] || translations.tr).profileSaved);
+    }
+
+    // -------------------------------------------------------------
+    // 12. VIRUSTOTAL RAPORU: HARİCİ KONTROL, GERÇEK SONUÇ İDDİASI YOK
+    // -------------------------------------------------------------
+    function handleDownloadClick(event) {
+      if (event) event.preventDefault();
+      openVirusScanModal();
+    }
+
+    function openVirusScanModal() {
+      const modal = document.getElementById("virusScanModal");
+      const link = document.getElementById("virusTotalExternalLink");
+      const apps = loadApps();
+      const app = apps.find(a => a.id === activeAppId);
+      if (app && app.sha256) {
+        const hash = app.sha256.replace(/^sha256:/i, "").trim();
+        if (/^[a-f0-9]{64}$/i.test(hash)) {
+          link.href = "https://www.virustotal.com/gui/file/" + encodeURIComponent(hash);
+        } else {
+          link.href = "https://www.virustotal.com/gui/home/upload";
+        }
+      } else {
+        link.href = "https://www.virustotal.com/gui/home/upload";
+      }
+      modal.classList.remove("hidden");
+    }
+
+    function closeVirusScanModal() {
+      document.getElementById("virusScanModal").classList.add("hidden");
+    }
+
+    function downloadAfterScanNotice() {
+      const apps = loadApps();
+      const app = apps.find(a => a.id === activeAppId);
+      closeVirusScanModal();
+      if (!app || !app.apkUrl) return;
+      const link = document.createElement("a");
+      link.href = app.apkUrl;
+      if (app.isBlob) {
+        link.download = (app.name || "app").toLowerCase().replace(/\\s+/g, "_") + ".apk";
+      } else {
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+      }
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    }
+
+    function applyExtendedTranslations() {
+      const lang = translations[currentLang] || translations.tr;
+      document.querySelectorAll("[data-ext]").forEach(el => {
+        const key = el.getAttribute("data-ext");
+        if (lang[key]) el.textContent = lang[key];
+      });
+      const typeLabels = {
+        profileType: [lang.profileTypeIndie, lang.profileTypeStudio, lang.profileTypeOpen, lang.profileTypePublisher]
+      };
+      const typeSelect = document.getElementById("profileType");
+      if (typeSelect && typeLabels.profileType[0]) {
+        typeSelect.options[0].text = typeLabels.profileType[0];
+        typeSelect.options[1].text = typeLabels.profileType[1];
+        typeSelect.options[2].text = typeLabels.profileType[2];
+        typeSelect.options[3].text = typeLabels.profileType[3];
+      }
+    }
+
     let currentLang = localStorage.getItem("apkhub_lang") || "tr";
 
     // -------------------------------------------------------------
@@ -1233,7 +1491,7 @@
       document.getElementById("modalDownloads").innerText = app.downloads || "30+";
       document.getElementById("modalSize").innerText = app.size || "1.1 MB";
       document.getElementById("modalDesc").innerText = app.desc || (app.name + " uygulaması.");
-      document.getElementById("modalSha256").innerText = app.sha256 ? app.sha256.replace(/^sha256:/i, '') : "Doğrulanmış güvenli paket";
+      document.getElementById("modalSha256").innerText = app.sha256 ? app.sha256.replace(/^sha256:/i, '') : "SHA-256 bilgisi girilmemiş";
       document.getElementById("modalLikesCount").innerText = app.likes || 0;
 
       const dlBtn = document.getElementById("modalDownloadBtn");
@@ -1512,6 +1770,14 @@
     // 9. YENİ UYGULAMA YAYINLAMA
     // -------------------------------------------------------------
     function openPublishModal() {
+      const profile = getDeveloperProfile();
+      if (!profile || !profile.studio || !profile.email || !profile.country || !profile.bio || !profile.acceptedTerms) {
+        document.getElementById("publishModal").dataset.openAfterProfile = "true";
+        openDeveloperProfileModal();
+        return;
+      }
+      const developerInput = document.getElementById("pubDev");
+      if (developerInput && !developerInput.value.trim()) developerInput.value = profile.studio;
       document.getElementById("publishModal").classList.remove("hidden");
     }
 
@@ -1611,6 +1877,8 @@
       if (mInp) mInp.placeholder = translations[lang].search_placeholder;
 
       renderAppGrid();
+      applyExtendedTranslations();
+      updateDeveloperAccountButton();
     }
 
     // -------------------------------------------------------------

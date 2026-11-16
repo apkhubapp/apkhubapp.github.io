@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>APKHub - Güvenli APK İndirme & Geliştirici Mağazası</title>
@@ -1405,6 +1407,108 @@
       }
     ];
 
+    
+    // -------------------------------------------------------------
+    // SUPABASE BULUT BAĞLANTISI (Gerçek Veritabanı ve Resim Deposu)
+    // -------------------------------------------------------------
+    const SUPABASE_URL = "https://qglnwczocxyjqbzgwzky.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_ot0sLmEMKalIwj5ZSGnF6A_MiKTT9tf";
+    const supabaseClient = (typeof window !== "undefined" && window.supabase)
+      ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+      : null;
+
+    async function uploadFileToSupabase(file, folder = "icons") {
+      if (!file || !supabaseClient) return null;
+      try {
+        const ext = file.name.split('.').pop() || 'png';
+        const cleanExt = ext.toLowerCase().replace(/[^a-z0-9]/g, '');
+        const fileName = `${folder}/${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${cleanExt}`;
+        const { data, error } = await supabaseClient.storage.from("apkhub").upload(fileName, file, {
+          cacheControl: "3600",
+          upsert: true
+        });
+        if (error) {
+          console.warn("Storage upload error:", error);
+          return null;
+        }
+        const { data: pubData } = supabaseClient.storage.from("apkhub").getPublicUrl(fileName);
+        return pubData?.publicUrl || null;
+      } catch (err) {
+        console.warn("Icon upload failed:", err);
+        return null;
+      }
+    }
+
+    async function syncAppToSupabase(app) {
+      if (!supabaseClient || !app) return;
+      try {
+        const row = {
+          id: String(app.id),
+          name: app.name || "",
+          dev: app.dev || "obsideX Studio",
+          version: app.version || "1.0.0",
+          category: app.category || "Oyunlar",
+          size: app.size || "15 MB",
+          downloads: String(app.downloads || "0+"),
+          rating: Number(app.rating) || 5.0,
+          likes: Number(app.likes) || 0,
+          icon: app.icon || "",
+          apk_url: app.apkUrl || "",
+          sha256: app.sha256 || "",
+          description: app.desc || "",
+          comments: Array.isArray(app.comments) ? app.comments : [],
+          created_at: Number(app.createdAt) || Date.now()
+        };
+        const { error } = await supabaseClient.from("apps").upsert(row);
+        if (error) console.warn("Supabase upsert error:", error);
+      } catch (err) {
+        console.warn("syncAppToSupabase error:", err);
+      }
+    }
+
+    async function deleteAppFromSupabase(id) {
+      if (!supabaseClient || !id) return;
+      try {
+        const { error } = await supabaseClient.from("apps").delete().eq("id", String(id));
+        if (error) console.warn("Supabase delete error:", error);
+      } catch (err) {
+        console.warn("deleteAppFromSupabase error:", err);
+      }
+    }
+
+    async function fetchAndSyncApps() {
+      if (!supabaseClient) return;
+      try {
+        const { data, error } = await supabaseClient.from("apps").select("*").order("created_at", { ascending: false });
+        if (!error && Array.isArray(data) && data.length > 0) {
+          const remoteApps = data.map(row => ({
+            id: String(row.id),
+            name: row.name,
+            dev: row.dev,
+            version: row.version,
+            category: row.category,
+            size: row.size,
+            downloads: row.downloads,
+            rating: Number(row.rating) || 5.0,
+            likes: Number(row.likes) || 0,
+            icon: row.icon,
+            apkUrl: row.apk_url,
+            isBlob: false,
+            sha256: row.sha256 || "",
+            desc: row.description || "",
+            comments: Array.isArray(row.comments) ? row.comments : [],
+            createdAt: Number(row.created_at) || Date.now()
+          }));
+          localStorage.setItem("apkhub_apps_store_v3", JSON.stringify(remoteApps));
+          updateGlobalStats();
+          renderAppGrid();
+          renderMyAppsList();
+        }
+      } catch (err) {
+        console.warn("fetchAndSyncApps error:", err);
+      }
+    }
+
     let currentCategory = "all";
     let searchQuery = "";
     let currentSort = "newest";
@@ -1795,12 +1899,18 @@
 
       // İkon Güncellemesi
       if (iconFileInput) {
-        app.icon = await readFileAsDataURL(iconFileInput);
+        const uploadedUrl = await uploadFileToSupabase(iconFileInput, "icons");
+        if (uploadedUrl) {
+          app.icon = uploadedUrl;
+        } else {
+          app.icon = await readFileAsDataURL(iconFileInput);
+        }
       } else if (iconUrlInput) {
         app.icon = iconUrlInput;
       }
 
       saveApps(apps);
+      syncAppToSupabase(app);
       closeEditModal();
       renderAppGrid();
       renderMyAppsList();
@@ -1836,6 +1946,7 @@
       let apps = loadApps();
       apps = apps.filter(a => a.id !== pendingDeleteAppId);
       saveApps(apps);
+      deleteAppFromSupabase(pendingDeleteAppId);
 
       closeDeleteModal();
       closeDetailModal();
@@ -1908,7 +2019,12 @@
 
       let finalIcon = iconUrlInput || "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=200&auto=format&fit=crop&q=80";
       if (iconFileInput) {
-        finalIcon = await readFileAsDataURL(iconFileInput);
+        const uploadedUrl = await uploadFileToSupabase(iconFileInput, "icons");
+        if (uploadedUrl) {
+          finalIcon = uploadedUrl;
+        } else {
+          finalIcon = await readFileAsDataURL(iconFileInput);
+        }
       }
 
       const newApp = {
@@ -1933,6 +2049,7 @@
       const apps = loadApps();
       apps.unshift(newApp);
       saveApps(apps);
+      syncAppToSupabase(newApp);
 
       showToast(translations[currentLang].alert_publish_success);
       closePublishModal();

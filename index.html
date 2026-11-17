@@ -1600,10 +1600,25 @@
     const SUPABASE_URL = "https://qglnwczocxyjqbzgwzky.supabase.co";
     const SUPABASE_ANON_KEY = "sb_publishable_ot0sLmEMKalIwj5ZSGnF6A_MiKTT9tf";
     // -------------------------------------------------------------
-    // SUPABASE BULUT KİMLİK DOĞRULAMA VE PROFİL YÖNETİMİ
+    // SUPABASE BULUT KİMLİK DOĞRULAMA VE PROFİL YÖNETİMİ (ONAYSIZ DOĞRUDAN GİRİŞ)
     // -------------------------------------------------------------
     let currentUser = null;
     let currentProfile = null;
+
+    async function hashPassword(str) {
+      try {
+        const enc = new TextEncoder().encode(str + "_apkhub_salt_2026");
+        const buf = await crypto.subtle.digest("SHA-256", enc);
+        return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join("");
+      } catch (e) {
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) {
+          hash = ((hash << 5) - hash) + str.charCodeAt(i);
+          hash |= 0;
+        }
+        return "h_" + Math.abs(hash);
+      }
+    }
 
     function switchAuthTab(tab) {
       const loginForm = document.getElementById("loginForm");
@@ -1640,8 +1655,8 @@
       const alertBox = document.getElementById("authErrorAlert");
       if (alertBox) alertBox.classList.add("hidden");
 
-      const email = document.getElementById("loginEmail").value.trim();
-      const password = document.getElementById("loginPassword").value;
+      const email = (document.getElementById("loginEmail")?.value || "").trim().toLowerCase();
+      const password = document.getElementById("loginPassword")?.value || "";
       const btn = document.getElementById("loginSubmitBtn");
 
       if (!email || !password) {
@@ -1649,36 +1664,72 @@
         return;
       }
 
-      if (!supabaseClient) {
-        showAuthError("Supabase bağlantısı henüz hazır değil.");
-        return;
-      }
-
       btn.disabled = true;
       btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Giriş yapılıyor...`;
 
       try {
-        const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-        if (error) {
-          const msg = error.message.toLowerCase();
-          if (msg.includes("invalid login credentials")) {
-            showAuthError("Hatalı e-posta veya şifre!");
-          } else if (msg.includes("email not confirmed")) {
-            showAuthError("E-posta adresi henüz onaylanmamış! Lütfen e-postanızı kontrol edin veya Supabase panelinden 'Confirm email' ayarını kapatın.");
-          } else {
-            showAuthError(error.message || "Giriş yapılamadı.");
+        const passHash = await hashPassword(password);
+        let foundUser = null;
+
+        if (supabaseClient) {
+          const { data, error } = await supabaseClient
+            .from("developer_profiles")
+            .select("*")
+            .ilike("email", email)
+            .maybeSingle();
+
+          if (!error && data) {
+            foundUser = data;
           }
+        }
+
+        // Eğer yerelde kayıtlı yedek varsa
+        if (!foundUser) {
+          const localDevs = JSON.parse(localStorage.getItem("apkhub_all_developers") || "[]");
+          foundUser = localDevs.find(d => (d.email || "").toLowerCase() === email);
+        }
+
+        if (!foundUser) {
+          showAuthError("Bu e-posta adresiyle kayıtlı bir geliştirici bulunamadı! Lütfen önce 'Kayıt Ol' sekmesinden hesap açın.");
           return;
         }
 
-        currentUser = data.user;
-        await loadCurrentUserProfile();
+        // Şifre kontrolü (Eski veya yeni şifre eşleştirmesi)
+        const storedPwd = foundUser.support_link || "";
+        let passwordValid = false;
+
+        if (!storedPwd || !storedPwd.startsWith("pwd:")) {
+          // İlk kez giriş yapıyor, şifresini bağlayalım
+          passwordValid = true;
+          if (supabaseClient && foundUser.id) {
+            await supabaseClient.from("developer_profiles").update({ support_link: "pwd:" + passHash }).eq("id", foundUser.id);
+          }
+        } else if (storedPwd === "pwd:" + passHash) {
+          passwordValid = true;
+        }
+
+        if (!passwordValid) {
+          showAuthError("Girdiğiniz şifre hatalı! Lütfen kontrol edip tekrar deneyin.");
+          return;
+        }
+
+        currentUser = {
+          id: foundUser.user_id || foundUser.id,
+          email: foundUser.email,
+          studio_name: foundUser.studio_name
+        };
+        currentProfile = foundUser;
+
+        // Oturumu kalıcı kaydet (Tarayıcı asla unutmasın)
+        localStorage.setItem("apkhub_active_developer", JSON.stringify(currentUser));
+        localStorage.setItem("apkhub_dev_profile", JSON.stringify(foundUser));
+
         updateAuthUI();
         closeAccountModal();
         renderMyAppsList();
         showToast("Geliştirici hesabına başarıyla giriş yapıldı!");
       } catch (err) {
-        showAuthError("Bağlantı hatası: " + err.message);
+        showAuthError("Giriş sırasında hata oluştu: " + err.message);
       } finally {
         btn.disabled = false;
         btn.innerHTML = `<i class="fa-solid fa-right-to-bracket"></i> Giriş Yap`;
@@ -1690,9 +1741,9 @@
       const alertBox = document.getElementById("authErrorAlert");
       if (alertBox) alertBox.classList.add("hidden");
 
-      const studioName = document.getElementById("regStudioName").value.trim();
-      const email = document.getElementById("regEmail").value.trim();
-      const password = document.getElementById("regPassword").value;
+      const studioName = (document.getElementById("regStudioName")?.value || "").trim();
+      const email = (document.getElementById("regEmail")?.value || "").trim().toLowerCase();
+      const password = document.getElementById("regPassword")?.value || "";
       const btn = document.getElementById("regSubmitBtn");
 
       if (!studioName || !email || !password) {
@@ -1705,66 +1756,87 @@
         return;
       }
 
-      if (!supabaseClient) {
-        showAuthError("Supabase bağlantısı hazır değil.");
-        return;
-      }
-
       btn.disabled = true;
       btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Hesap açılıyor...`;
 
       try {
-        const { data, error } = await supabaseClient.auth.signUp({
-          email,
-          password,
-          options: {
-            data: {
-              studio_name: studioName
-            }
-          }
-        });
+        // 1. ZATEN KAYITLI MI KONTROLÜ
+        let exists = false;
+        if (supabaseClient) {
+          const { data, error } = await supabaseClient
+            .from("developer_profiles")
+            .select("id, email, studio_name")
+            .ilike("email", email)
+            .maybeSingle();
 
-        if (error) {
-          const msg = error.message.toLowerCase();
-          if (msg.includes("already registered") || msg.includes("already in use") || msg.includes("user already exists")) {
-            showAuthError("Bu e-posta adresiyle zaten kayıtlı bir geliştirici hesabı var! Lütfen 'Giriş Yap' sekmesini kullanın.");
-          } else {
-            showAuthError(error.message || "Kayıt işlemi başarısız oldu.");
+          if (!error && data) {
+            exists = true;
           }
+        }
+
+        if (!exists) {
+          const localDevs = JSON.parse(localStorage.getItem("apkhub_all_developers") || "[]");
+          if (localDevs.some(d => (d.email || "").toLowerCase() === email)) {
+            exists = true;
+          }
+        }
+
+        if (exists) {
+          showAuthError("Bu e-posta adresiyle zaten kayıtlı bir geliştirici hesabı var! Lütfen 'Giriş Yap' sekmesinden giriş yapın.");
           return;
         }
 
-        currentUser = data.user;
+        // 2. ONAYSIZ DOĞRUDAN HESAP AÇMA VE GİRİŞ
+        const passHash = await hashPassword(password);
+        const devId = "dev_" + Date.now() + "_" + Math.random().toString(36).substring(2, 7);
 
-        if (data.user) {
+        const newDev = {
+          id: devId,
+          user_id: devId,
+          studio_name: studioName,
+          email: email,
+          country: "Türkiye",
+          dev_type: "studio",
+          website: "",
+          support_link: "pwd:" + passHash,
+          privacy_link: "",
+          logo_url: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=200&auto=format&fit=crop&q=80",
+          specialties: "Mobil Oyunlar, Modifikasyon, Özel Araçlar",
+          bio: `${studioName} geliştirici stüdyosu. APKHub üzerinde doğrulanmış mobil oyun ve uygulamalar yayınlamaktadır.`,
+          verified: true,
+          updated_at: Date.now()
+        };
+
+        if (supabaseClient) {
           try {
-            await supabaseClient.from("developer_profiles").upsert({
-              id: data.user.id,
-              user_id: data.user.id,
-              studio_name: studioName,
-              email: email,
-              country: "Türkiye",
-              bio: `${studioName} geliştirici stüdyosu. APKHub üzerinde doğrulanmış mobil oyun ve uygulamalar yayınlamaktadır.`,
-              verified: true,
-              updated_at: Date.now()
-            });
-          } catch (profileErr) {
-            console.warn("Profile table upsert:", profileErr);
+            await supabaseClient.from("developer_profiles").insert([newDev]);
+          } catch (dbErr) {
+            console.warn("Supabase insert warning:", dbErr);
           }
         }
 
-        if (data.session) {
-          await loadCurrentUserProfile();
-          updateAuthUI();
-          closeAccountModal();
-          renderMyAppsList();
-          showToast("Geliştirici hesabınız başarıyla oluşturuldu ve giriş yapıldı!");
-        } else {
-          showToast("Hesap oluşturuldu! Lütfen Giriş Yap sekmesinden giriş yapın.");
-          switchAuthTab("login");
-        }
+        // Yerel listeye de kaydet
+        const localDevs = JSON.parse(localStorage.getItem("apkhub_all_developers") || "[]");
+        localDevs.push(newDev);
+        localStorage.setItem("apkhub_all_developers", JSON.stringify(localDevs));
+
+        currentUser = {
+          id: devId,
+          email: email,
+          studio_name: studioName
+        };
+        currentProfile = newDev;
+
+        // Oturumu kalıcı kaydet
+        localStorage.setItem("apkhub_active_developer", JSON.stringify(currentUser));
+        localStorage.setItem("apkhub_dev_profile", JSON.stringify(newDev));
+
+        updateAuthUI();
+        closeAccountModal();
+        renderMyAppsList();
+        showToast("Geliştirici hesabınız başarıyla oluşturuldu ve doğrudan giriş yapıldı!");
       } catch (err) {
-        showAuthError("Kayıt hatası: " + err.message);
+        showAuthError("Kayıt sırasında hata oluştu: " + err.message);
       } finally {
         btn.disabled = false;
         btn.innerHTML = `<i class="fa-solid fa-user-plus"></i> Geliştirici Hesabı Oluştur`;
@@ -1772,20 +1844,14 @@
     }
 
     async function handleAuthLogout() {
-      if (supabaseClient) {
-        try {
-          await supabaseClient.auth.signOut();
-        } catch (e) {
-          console.warn("Sign out error:", e);
-        }
-      }
       currentUser = null;
       currentProfile = null;
+      localStorage.removeItem("apkhub_active_developer");
       localStorage.removeItem("apkhub_dev_profile");
       updateAuthUI();
       closeAccountModal();
       renderMyAppsList();
-      showToast("Hesaptan güvenle çıkış yapıldı.");
+      showToast("Geliştirici hesabından güvenle çıkış yapıldı.");
     }
 
     async function loadCurrentUserProfile() {
@@ -1795,37 +1861,37 @@
           const { data, error } = await supabaseClient
             .from("developer_profiles")
             .select("*")
-            .eq("user_id", currentUser.id)
+            .ilike("email", currentUser.email)
             .maybeSingle();
 
           if (!error && data) {
             currentProfile = {
               studio: data.studio_name,
               email: data.email,
-              country: data.country,
-              type: data.dev_type,
-              website: data.website,
-              support: data.support_link,
-              privacy: data.privacy_link,
-              logo: data.logo_url,
-              specialties: data.specialties,
-              contactPerson: data.contact_person,
-              bio: data.bio,
-              verified: data.verified
+              country: data.country || "Türkiye",
+              type: data.dev_type || "studio",
+              website: data.website || "",
+              support: data.support_link || "",
+              privacy: data.privacy_link || "",
+              logo: data.logo_url || "",
+              specialties: data.specialties || "",
+              contactPerson: data.contact_person || "",
+              bio: data.bio || "",
+              verified: data.verified !== false
             };
             localStorage.setItem("apkhub_dev_profile", JSON.stringify(currentProfile));
             return;
           }
         }
       } catch (e) {
-        console.warn("Could not load developer profile:", e);
+        console.warn("Could not load remote dev profile:", e);
       }
 
       currentProfile = {
-        studio: currentUser.user_metadata?.studio_name || "obsideX Studio",
+        studio: currentUser.studio_name || "obsideX Studio",
         email: currentUser.email,
         country: "Türkiye",
-        bio: "obsideX Studio bağımsız oyun ve uygulama stüdyosu.",
+        bio: `${currentUser.studio_name || "obsideX Studio"} geliştirici stüdyosu. APKHub üzerinde doğrulanmış mobil içerikler üretmektedir.`,
         verified: true
       };
       localStorage.setItem("apkhub_dev_profile", JSON.stringify(currentProfile));
@@ -1842,7 +1908,7 @@
         if (signedOutEl) signedOutEl.classList.add("hidden");
         if (signedInEl) signedInEl.classList.remove("hidden");
 
-        const name = currentProfile?.studio || currentUser.user_metadata?.studio_name || "obsideX Studio";
+        const name = currentProfile?.studio || currentUser.studio_name || "obsideX Studio";
         if (studioNameEl) studioNameEl.innerText = name;
         if (avatarLetter) avatarLetter.innerText = name.charAt(0).toUpperCase();
         if (emailTextEl) emailTextEl.innerText = currentUser.email || "";
@@ -1853,8 +1919,7 @@
 
       updateDeveloperAccountButton();
     }
-
-    // -------------------------------------------------------------
+// -------------------------------------------------------------
     // SAHİPLİK VE YETKİ KONTROLÜ (Başka kullanıcıların editlemesini engelleme)
     // -------------------------------------------------------------
     function isCurrentUserAppOwner(app) {

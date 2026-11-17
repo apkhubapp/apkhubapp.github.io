@@ -248,7 +248,7 @@
           />
           <div class="flex-1 pr-8 min-w-0">
             <h2 id="modalTitle" class="text-xl sm:text-2xl font-black text-slate-900 leading-tight truncate"></h2>
-            <p id="modalDev" class="text-xs sm:text-sm font-semibold text-emerald-400 mt-1 truncate"></p>
+            <div class="mt-1 flex items-center gap-2"><button type="button" id="modalDevBtn" onclick="viewDeveloperProfileFromModal()" class="text-xs sm:text-sm font-bold text-emerald-600 hover:text-emerald-700 hover:underline flex items-center gap-1.5 transition"><i class="fa-solid fa-code text-xs"></i><span id="modalDev"></span></button><span class="inline-flex items-center text-[10px] bg-emerald-50 text-emerald-600 border border-emerald-200 px-1.5 py-0.5 rounded-full font-bold"><i class="fa-solid fa-check text-[9px] mr-1"></i>Doğrulandı</span></div>
             <div class="flex items-center gap-2 mt-2">
               <span id="modalCategory" class="text-[11px] bg-slate-50 text-slate-700 px-2.5 py-0.5 rounded-full border border-slate-300"></span>
               <span id="modalVersionBadge" class="text-[11px] bg-emerald-500/10 text-emerald-400 font-mono px-2 py-0.5 rounded-md border border-emerald-500/20"></span>
@@ -906,18 +906,181 @@
 
   <!-- ==================== JAVASCRIPT MOTORU ==================== -->
 
-  <div id="accountModal" class="hidden fixed inset-0 z-[80] bg-slate-900/50 p-4 flex items-center justify-center" role="dialog" aria-modal="true" aria-labelledby="accountTitle">
-    <div class="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl">
-      <div class="flex items-center justify-between mb-5"><h2 id="accountTitle" class="text-xl font-black text-slate-900" data-i18n="menu_account">Hesabım</h2><button onclick="closeAccountModal()" class="p-2 text-slate-500 hover:text-slate-900" aria-label="Kapat"><i class="fa-solid fa-xmark"></i></button></div>
-      <div id="accountSignedOut">
-        <p class="text-sm text-slate-600 mb-4" data-i18n="account_local_notice">Bu statik sürüm hesabı yalnızca bu tarayıcıda saklar; cihazlar arasında senkronizasyon yapmaz.</p>
-        <div class="space-y-3"><label class="block text-sm font-semibold text-slate-700"><span data-i18n="account_name">Ad</span><input id="accountName" autocomplete="name" class="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-slate-900" /></label><label class="block text-sm font-semibold text-slate-700"><span data-i18n="account_email">E-posta</span><input id="accountEmail" type="email" autocomplete="email" class="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-slate-900" /></label><label class="block text-sm font-semibold text-slate-700"><span data-i18n="account_password">Şifre</span><input id="accountPassword" type="password" autocomplete="new-password" class="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-slate-900" /></label></div>
-        <button onclick="localAccountSignIn()" class="mt-5 w-full rounded-xl bg-emerald-600 px-4 py-3 font-bold text-white hover:bg-emerald-700" data-i18n="account_register_login">Kayıt ol / Giriş yap</button>
+  
+  <!-- ============================================================ -->
+  <!-- YENİ: GENEL GELİŞTİRİCİ PROFİLİ GÖRÜNTÜLEME MODALI (HERKESE AÇIK) -->
+  <!-- ============================================================ -->
+  <div id="viewDeveloperModal" class="hidden fixed inset-0 z-[75] bg-slate-900/60 backdrop-blur-sm p-4 flex items-center justify-center overflow-y-auto" role="dialog" aria-modal="true">
+    <div class="bg-white border border-slate-200 w-full max-w-2xl rounded-3xl shadow-2xl relative p-6 sm:p-8 my-8 max-h-[90vh] overflow-y-auto custom-scrollbar">
+      <button onclick="closeViewDeveloperModal()" class="absolute top-5 right-5 w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <!-- Profil Üst Bilgileri -->
+      <div class="flex flex-col sm:flex-row items-center sm:items-start gap-5 pb-6 border-b border-slate-200">
+        <img id="viewDevLogo" src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=200&auto=format&fit=crop&q=80" alt="Studio Logo" class="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl object-cover border-2 border-emerald-500 shadow-lg" onerror="this.src='https://api.iconify.design/lucide:gamepad-2.svg?color=%2310b981';" />
+        <div class="flex-1 text-center sm:text-left space-y-1.5">
+          <div class="flex flex-wrap items-center justify-center sm:justify-start gap-2">
+            <h2 id="viewDevTitle" class="text-xl sm:text-2xl font-black text-slate-900">obsideX Studio</h2>
+            <span id="viewDevVerified" class="inline-flex items-center gap-1 bg-emerald-50 text-emerald-600 border border-emerald-200 text-[11px] font-bold px-2 py-0.5 rounded-full">
+              <i class="fa-solid fa-circle-check"></i> Doğrulanmış Stüdyo
+            </span>
+          </div>
+          <p id="viewDevContact" class="text-xs font-semibold text-slate-500">Yetkili: Muho41885 · Türkiye</p>
+          <div class="flex flex-wrap justify-center sm:justify-start gap-3 pt-2 text-xs">
+            <a id="viewDevWebsite" href="#" target="_blank" class="hidden inline-flex items-center gap-1.5 text-emerald-600 hover:underline font-semibold">
+              <i class="fa-solid fa-globe"></i> Web Sitesi
+            </a>
+            <a id="viewDevEmail" href="#" class="hidden inline-flex items-center gap-1.5 text-sky-600 hover:underline font-semibold">
+              <i class="fa-solid fa-envelope"></i> İletişim
+            </a>
+          </div>
+        </div>
       </div>
-      <div id="accountSignedIn" class="hidden"><p class="text-sm text-slate-600 mb-4" data-i18n="account_local_notice">Bu statik sürüm hesabı yalnızca bu tarayıcıda saklar; cihazlar arasında senkronizasyon yapmaz.</p><div class="rounded-xl bg-slate-50 p-4"><div class="text-xs font-bold uppercase text-slate-500" data-i18n="account_profile">Profil bilgileri</div><div id="accountProfileSummary" class="mt-2 text-sm font-semibold text-slate-800"></div></div><button onclick="openDeveloperProfileModal();closeAccountModal()" class="mt-4 w-full rounded-xl border border-slate-300 px-4 py-2 font-semibold text-slate-700" data-i18n="menu_developer">Geliştirici profili</button><button onclick="localAccountLogout()" class="mt-3 w-full rounded-xl border border-rose-200 px-4 py-2 font-semibold text-rose-700" data-i18n="account_logout">Çıkış yap</button></div>
-      <p class="mt-4 text-xs leading-5 text-slate-500" data-i18n="account_backend_note">Gerçek, güvenli hesap ve farklı cihazlarda uygulama/ikon paylaşımı için sunucu veritabanı ve dosya depolama gerekir.</p>
+
+      <!-- Hakkında & Uzmanlık -->
+      <div class="py-5 border-b border-slate-200 space-y-3">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500">Stüdyo Hakkında</h3>
+        <p id="viewDevBio" class="text-xs sm:text-sm text-slate-700 leading-relaxed bg-slate-50 p-4 rounded-2xl border border-slate-200"></p>
+        <div id="viewDevSpecialtiesBox" class="hidden text-xs text-slate-600 font-medium">
+          <span class="font-bold text-slate-700">Uzmanlık Alanları:</span> <span id="viewDevSpecialties"></span>
+        </div>
+      </div>
+
+      <!-- Bu Geliştiricinin Yayınladığı Uygulamalar -->
+      <div class="pt-5 space-y-3">
+        <div class="flex items-center justify-between">
+          <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+            <i class="fa-solid fa-cubes text-emerald-500"></i> Yayınladığı Uygulamalar
+          </h3>
+          <span id="viewDevAppCountBadge" class="text-xs font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">0 uygulama</span>
+        </div>
+        <div id="viewDevAppsGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1"></div>
+      </div>
+
+      <!-- Kendi profilimizse düzenleme kısayolu -->
+      <div id="viewDevSelfEditBox" class="hidden mt-6 pt-4 border-t border-slate-200">
+        <button onclick="closeViewDeveloperModal(); openDeveloperProfileModal();" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 rounded-2xl text-xs transition flex items-center justify-center gap-2">
+          <i class="fa-solid fa-pen"></i> Profilimi Düzenle
+        </button>
+      </div>
     </div>
   </div>
+
+
+  <div id="accountModal" class="hidden fixed inset-0 z-[80] bg-slate-900/60 backdrop-blur-sm p-4 flex items-center justify-center" role="dialog" aria-modal="true" aria-labelledby="accountTitle">
+    <div class="w-full max-w-md max-h-[92vh] overflow-y-auto rounded-3xl bg-white p-6 sm:p-7 shadow-2xl border border-slate-200 custom-scrollbar">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-2.5">
+          <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center text-lg">
+            <i class="fa-solid fa-code"></i>
+          </div>
+          <div>
+            <h2 id="accountTitle" class="text-lg font-black text-slate-900">Geliştirici Hesabı</h2>
+            <p class="text-[11px] text-slate-500">APKHub Geliştirici Portalı</p>
+          </div>
+        </div>
+        <button onclick="closeAccountModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition" aria-label="Kapat">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- ÇIKIŞ YAPILMIŞ DURUMDA (Kayıt Ol / Giriş Yap Formu) -->
+      <div id="accountSignedOut">
+        <!-- Sekmeler -->
+        <div class="flex rounded-xl bg-slate-100 p-1 mb-5">
+          <button id="authTabLogin" type="button" onclick="switchAuthTab('login')" class="flex-1 py-2 text-xs font-bold rounded-lg bg-white text-slate-900 shadow-sm transition">
+            Giriş Yap
+          </button>
+          <button id="authTabRegister" type="button" onclick="switchAuthTab('register')" class="flex-1 py-2 text-xs font-bold rounded-lg text-slate-500 hover:text-slate-900 transition">
+            Kayıt Ol
+          </button>
+        </div>
+
+        <!-- Hata / Bildirim Kutusu -->
+        <div id="authErrorAlert" class="hidden mb-4 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium flex items-start gap-2">
+          <i class="fa-solid fa-circle-exclamation mt-0.5 text-rose-500"></i>
+          <span id="authErrorText"></span>
+        </div>
+
+        <!-- GİRİŞ FORMU -->
+        <form id="loginForm" onsubmit="handleAuthLogin(event)" class="space-y-3.5">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">E-posta</label>
+            <input id="loginEmail" type="email" required placeholder="gelistirici@obsidex.studio" autocomplete="email" class="w-full rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Şifre</label>
+            <input id="loginPassword" type="password" required placeholder="••••••••" autocomplete="current-password" class="w-full rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500" />
+          </div>
+          <button id="loginSubmitBtn" type="submit" class="w-full mt-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3 text-xs transition shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-2">
+            <i class="fa-solid fa-right-to-bracket"></i> Giriş Yap
+          </button>
+        </form>
+
+        <!-- KAYIT FORMU -->
+        <form id="registerForm" onsubmit="handleAuthRegister(event)" class="hidden space-y-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Geliştirici / Stüdyo Adı *</label>
+            <input id="regStudioName" required maxlength="60" placeholder="Örn: obsideX Studio" class="w-full rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">E-posta Adresi *</label>
+            <input id="regEmail" type="email" required placeholder="gelistirici@obsidex.studio" autocomplete="email" class="w-full rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Şifre (En az 6 karakter) *</label>
+            <input id="regPassword" type="password" required minlength="6" placeholder="••••••••" autocomplete="new-password" class="w-full rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-900 outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500" />
+          </div>
+          <button id="regSubmitBtn" type="submit" class="w-full mt-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3 text-xs transition shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-2">
+            <i class="fa-solid fa-user-plus"></i> Geliştirici Hesabı Oluştur
+          </button>
+        </form>
+
+        <p class="mt-4 text-[11px] text-center text-slate-400">
+          Supabase Bulut Kimlik Doğrulaması ile korunur. Oturumunuz bu cihazda açık kalır.
+        </p>
+      </div>
+
+      <!-- GİRİŞ YAPILMIŞ DURUMDA (Kullanıcı Paneli) -->
+      <div id="accountSignedIn" class="hidden space-y-4">
+        <div class="rounded-2xl bg-slate-50 border border-slate-200 p-4 space-y-2">
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-xl bg-emerald-500 text-white flex items-center justify-center font-black text-lg shadow-md shadow-emerald-500/20">
+              <span id="accountAvatarLetter">O</span>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-1.5">
+                <h3 id="accountStudioName" class="text-sm font-black text-slate-900 truncate">obsideX Studio</h3>
+                <i class="fa-solid fa-circle-check text-emerald-500 text-xs" title="Geliştirici Hesabı Doğrulandı"></i>
+              </div>
+              <p id="accountEmailText" class="text-xs text-slate-500 truncate">user@obsidex.studio</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="space-y-2">
+          <button onclick="closeAccountModal(); openDeveloperProfileModal();" class="w-full flex items-center justify-between px-4 py-3 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-xs font-bold text-slate-700 transition">
+            <span class="flex items-center gap-2.5"><i class="fa-solid fa-user-pen text-emerald-600"></i> Geliştirici Profilini Düzenle</span>
+            <i class="fa-solid fa-chevron-right text-slate-400 text-[10px]"></i>
+          </button>
+          <button onclick="closeAccountModal(); openMyAppsModal();" class="w-full flex items-center justify-between px-4 py-3 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-xs font-bold text-slate-700 transition">
+            <span class="flex items-center gap-2.5"><i class="fa-solid fa-cubes text-sky-600"></i> Yayınladığım Uygulamalar</span>
+            <i class="fa-solid fa-chevron-right text-slate-400 text-[10px]"></i>
+          </button>
+          <button onclick="closeAccountModal(); openPublishModal();" class="w-full flex items-center justify-between px-4 py-3 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-xs font-bold text-emerald-700 transition">
+            <span class="flex items-center gap-2.5"><i class="fa-solid fa-plus-circle text-emerald-600"></i> Yeni Uygulama Yayınla</span>
+            <i class="fa-solid fa-chevron-right text-emerald-400 text-[10px]"></i>
+          </button>
+        </div>
+
+        <button onclick="handleAuthLogout()" class="w-full mt-3 rounded-xl bg-rose-50 hover:bg-rose-100 border border-rose-200 px-4 py-3 text-xs font-bold text-rose-700 transition flex items-center justify-center gap-2">
+          <i class="fa-solid fa-arrow-right-from-bracket"></i> Hesaptan Çıkış Yap
+        </button>
+      </div>
+    </div>
+  </div>
+
   <div id="settingsModal" class="hidden fixed inset-0 z-[80] bg-slate-900/50 p-4 flex items-center justify-center" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
     <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl"><div class="flex items-center justify-between"><h2 id="settingsTitle" class="text-xl font-black text-slate-900" data-i18n="menu_settings">Ayarlar</h2><button onclick="closeSettingsModal()" class="p-2 text-slate-500" aria-label="Kapat"><i class="fa-solid fa-xmark"></i></button></div><p class="mt-4 text-sm text-slate-600" data-i18n="settings_static_note">Tema: Açık. Bu statik sürümde uygulamalar ve profiller bu tarayıcıda saklanır.</p><label class="mt-4 block text-sm font-semibold text-slate-700"><span data-i18n="settings_language">Dil</span><select onchange="changeLang(this.value)" class="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2"><option value="tr">Türkçe</option><option value="en">English</option><option value="ru">Русский</option></select></label></div>
   </div>
@@ -928,9 +1091,9 @@
     function closeAccountModal(){document.getElementById("accountModal")?.classList.add("hidden");}
     function openSettingsModal(){document.getElementById("settingsModal")?.classList.remove("hidden");}
     function closeSettingsModal(){document.getElementById("settingsModal")?.classList.add("hidden");}
-    function refreshAccountModal(){const user=JSON.parse(localStorage.getItem("apkhub_local_account_v1")||"null");const out=document.getElementById("accountSignedOut"),inside=document.getElementById("accountSignedIn");if(!out||!inside)return;out.classList.toggle("hidden",!!user);inside.classList.toggle("hidden",!user);if(user){const summary=document.getElementById("accountProfileSummary");if(summary)summary.textContent=(user.name||"")+" · "+(user.email||"");}}
-    function localAccountSignIn(){const name=document.getElementById("accountName")?.value.trim(),email=document.getElementById("accountEmail")?.value.trim(),password=document.getElementById("accountPassword")?.value;if(!name||!email||!password){showToast((translations[currentLang]||translations.tr).account_fill_fields||"Tüm alanları doldurun.","error");return;}if(password.length<8){showToast((translations[currentLang]||translations.tr).account_password_short||"Şifre en az 8 karakter olmalı.","error");return;}localStorage.setItem("apkhub_local_account_v1",JSON.stringify({name,email,createdAt:Date.now()}));refreshAccountModal();showToast((translations[currentLang]||translations.tr).account_local_saved||"Profil bu tarayıcıya kaydedildi.");}
-    function localAccountLogout(){localStorage.removeItem("apkhub_local_account_v1");refreshAccountModal();showToast((translations[currentLang]||translations.tr).account_logged_out||"Çıkış yapıldı.");}
+    function refreshAccountModal(){ updateAuthUI(); }
+    function localAccountSignIn(){ /* Supabase Auth handles this */ }
+    function localAccountLogout(){ handleAuthLogout(); }
     document.addEventListener("click",e=>{const p=document.getElementById("mainMenuPanel"),b=document.getElementById("menuToggle");if(p&&!p.classList.contains("hidden")&&!p.contains(e.target)&&!b?.contains(e.target))closeMainMenu();});
     document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeMainMenu();closeAccountModal();closeSettingsModal();closeResetConfirm();}});
 
@@ -1302,6 +1465,29 @@
       };
       if (!profile.studio || !profile.email || !profile.country || !profile.bio || !profile.acceptedTerms) return;
       localStorage.setItem("apkhub_dev_profile", JSON.stringify(profile));
+      currentProfile = profile;
+      if (supabaseClient) {
+        const devUserId = currentUser ? currentUser.id : "obsidex-studio-profile";
+        supabaseClient.from("developer_profiles").upsert({
+          id: devUserId,
+          user_id: currentUser ? currentUser.id : "",
+          studio_name: profile.studio,
+          contact_person: profile.contactPerson || "",
+          email: profile.email,
+          country: profile.country,
+          dev_type: profile.type,
+          website: profile.website || "",
+          support_link: profile.support || "",
+          privacy_link: profile.privacy || "",
+          logo_url: profile.logo || "",
+          specialties: profile.specialties || "",
+          bio: profile.bio,
+          verified: true,
+          updated_at: Date.now()
+        }).then(({ error }) => {
+          if (error) console.warn("Developer profile sync error:", error);
+        });
+      }
       closeDeveloperProfileModal();
       updateDeveloperAccountButton();
       const publishModal = document.getElementById("publishModal");
@@ -1413,6 +1599,392 @@
     // -------------------------------------------------------------
     const SUPABASE_URL = "https://qglnwczocxyjqbzgwzky.supabase.co";
     const SUPABASE_ANON_KEY = "sb_publishable_ot0sLmEMKalIwj5ZSGnF6A_MiKTT9tf";
+    // -------------------------------------------------------------
+    // SUPABASE BULUT KİMLİK DOĞRULAMA VE PROFİL YÖNETİMİ
+    // -------------------------------------------------------------
+    let currentUser = null;
+    let currentProfile = null;
+
+    function switchAuthTab(tab) {
+      const loginForm = document.getElementById("loginForm");
+      const regForm = document.getElementById("registerForm");
+      const tabLogin = document.getElementById("authTabLogin");
+      const tabReg = document.getElementById("authTabRegister");
+      const errBox = document.getElementById("authErrorAlert");
+      if (errBox) errBox.classList.add("hidden");
+
+      if (tab === "register") {
+        loginForm.classList.add("hidden");
+        regForm.classList.remove("hidden");
+        tabReg.className = "flex-1 py-2 text-xs font-bold rounded-lg bg-white text-slate-900 shadow-sm transition";
+        tabLogin.className = "flex-1 py-2 text-xs font-bold rounded-lg text-slate-500 hover:text-slate-900 transition";
+      } else {
+        regForm.classList.add("hidden");
+        loginForm.classList.remove("hidden");
+        tabLogin.className = "flex-1 py-2 text-xs font-bold rounded-lg bg-white text-slate-900 shadow-sm transition";
+        tabReg.className = "flex-1 py-2 text-xs font-bold rounded-lg text-slate-500 hover:text-slate-900 transition";
+      }
+    }
+
+    function showAuthError(msg) {
+      const alertBox = document.getElementById("authErrorAlert");
+      const textEl = document.getElementById("authErrorText");
+      if (alertBox && textEl) {
+        textEl.innerText = msg;
+        alertBox.classList.remove("hidden");
+      }
+    }
+
+    async function handleAuthLogin(e) {
+      e.preventDefault();
+      const alertBox = document.getElementById("authErrorAlert");
+      if (alertBox) alertBox.classList.add("hidden");
+
+      const email = document.getElementById("loginEmail").value.trim();
+      const password = document.getElementById("loginPassword").value;
+      const btn = document.getElementById("loginSubmitBtn");
+
+      if (!email || !password) {
+        showAuthError("Lütfen tüm alanları doldurun.");
+        return;
+      }
+
+      if (!supabaseClient) {
+        showAuthError("Supabase bağlantısı henüz hazır değil.");
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Giriş yapılıyor...`;
+
+      try {
+        const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+        if (error) {
+          const msg = error.message.toLowerCase();
+          if (msg.includes("invalid login credentials")) {
+            showAuthError("Hatalı e-posta veya şifre!");
+          } else if (msg.includes("email not confirmed")) {
+            showAuthError("E-posta adresi henüz onaylanmamış! Lütfen e-postanızı kontrol edin veya Supabase panelinden 'Confirm email' ayarını kapatın.");
+          } else {
+            showAuthError(error.message || "Giriş yapılamadı.");
+          }
+          return;
+        }
+
+        currentUser = data.user;
+        await loadCurrentUserProfile();
+        updateAuthUI();
+        closeAccountModal();
+        renderMyAppsList();
+        showToast("Geliştirici hesabına başarıyla giriş yapıldı!");
+      } catch (err) {
+        showAuthError("Bağlantı hatası: " + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fa-solid fa-right-to-bracket"></i> Giriş Yap`;
+      }
+    }
+
+    async function handleAuthRegister(e) {
+      e.preventDefault();
+      const alertBox = document.getElementById("authErrorAlert");
+      if (alertBox) alertBox.classList.add("hidden");
+
+      const studioName = document.getElementById("regStudioName").value.trim();
+      const email = document.getElementById("regEmail").value.trim();
+      const password = document.getElementById("regPassword").value;
+      const btn = document.getElementById("regSubmitBtn");
+
+      if (!studioName || !email || !password) {
+        showAuthError("Lütfen tüm zorunlu alanları doldurun.");
+        return;
+      }
+
+      if (password.length < 6) {
+        showAuthError("Şifre en az 6 karakter olmalıdır.");
+        return;
+      }
+
+      if (!supabaseClient) {
+        showAuthError("Supabase bağlantısı hazır değil.");
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Hesap açılıyor...`;
+
+      try {
+        const { data, error } = await supabaseClient.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              studio_name: studioName
+            }
+          }
+        });
+
+        if (error) {
+          const msg = error.message.toLowerCase();
+          if (msg.includes("already registered") || msg.includes("already in use") || msg.includes("user already exists")) {
+            showAuthError("Bu e-posta adresiyle zaten kayıtlı bir geliştirici hesabı var! Lütfen 'Giriş Yap' sekmesini kullanın.");
+          } else {
+            showAuthError(error.message || "Kayıt işlemi başarısız oldu.");
+          }
+          return;
+        }
+
+        currentUser = data.user;
+
+        if (data.user) {
+          try {
+            await supabaseClient.from("developer_profiles").upsert({
+              id: data.user.id,
+              user_id: data.user.id,
+              studio_name: studioName,
+              email: email,
+              country: "Türkiye",
+              bio: `${studioName} geliştirici stüdyosu. APKHub üzerinde doğrulanmış mobil oyun ve uygulamalar yayınlamaktadır.`,
+              verified: true,
+              updated_at: Date.now()
+            });
+          } catch (profileErr) {
+            console.warn("Profile table upsert:", profileErr);
+          }
+        }
+
+        if (data.session) {
+          await loadCurrentUserProfile();
+          updateAuthUI();
+          closeAccountModal();
+          renderMyAppsList();
+          showToast("Geliştirici hesabınız başarıyla oluşturuldu ve giriş yapıldı!");
+        } else {
+          showToast("Hesap oluşturuldu! Lütfen Giriş Yap sekmesinden giriş yapın.");
+          switchAuthTab("login");
+        }
+      } catch (err) {
+        showAuthError("Kayıt hatası: " + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fa-solid fa-user-plus"></i> Geliştirici Hesabı Oluştur`;
+      }
+    }
+
+    async function handleAuthLogout() {
+      if (supabaseClient) {
+        try {
+          await supabaseClient.auth.signOut();
+        } catch (e) {
+          console.warn("Sign out error:", e);
+        }
+      }
+      currentUser = null;
+      currentProfile = null;
+      localStorage.removeItem("apkhub_dev_profile");
+      updateAuthUI();
+      closeAccountModal();
+      renderMyAppsList();
+      showToast("Hesaptan güvenle çıkış yapıldı.");
+    }
+
+    async function loadCurrentUserProfile() {
+      if (!currentUser) return;
+      try {
+        if (supabaseClient) {
+          const { data, error } = await supabaseClient
+            .from("developer_profiles")
+            .select("*")
+            .eq("user_id", currentUser.id)
+            .maybeSingle();
+
+          if (!error && data) {
+            currentProfile = {
+              studio: data.studio_name,
+              email: data.email,
+              country: data.country,
+              type: data.dev_type,
+              website: data.website,
+              support: data.support_link,
+              privacy: data.privacy_link,
+              logo: data.logo_url,
+              specialties: data.specialties,
+              contactPerson: data.contact_person,
+              bio: data.bio,
+              verified: data.verified
+            };
+            localStorage.setItem("apkhub_dev_profile", JSON.stringify(currentProfile));
+            return;
+          }
+        }
+      } catch (e) {
+        console.warn("Could not load developer profile:", e);
+      }
+
+      currentProfile = {
+        studio: currentUser.user_metadata?.studio_name || "obsideX Studio",
+        email: currentUser.email,
+        country: "Türkiye",
+        bio: "obsideX Studio bağımsız oyun ve uygulama stüdyosu.",
+        verified: true
+      };
+      localStorage.setItem("apkhub_dev_profile", JSON.stringify(currentProfile));
+    }
+
+    function updateAuthUI() {
+      const signedOutEl = document.getElementById("accountSignedOut");
+      const signedInEl = document.getElementById("accountSignedIn");
+      const avatarLetter = document.getElementById("accountAvatarLetter");
+      const studioNameEl = document.getElementById("accountStudioName");
+      const emailTextEl = document.getElementById("accountEmailText");
+
+      if (currentUser) {
+        if (signedOutEl) signedOutEl.classList.add("hidden");
+        if (signedInEl) signedInEl.classList.remove("hidden");
+
+        const name = currentProfile?.studio || currentUser.user_metadata?.studio_name || "obsideX Studio";
+        if (studioNameEl) studioNameEl.innerText = name;
+        if (avatarLetter) avatarLetter.innerText = name.charAt(0).toUpperCase();
+        if (emailTextEl) emailTextEl.innerText = currentUser.email || "";
+      } else {
+        if (signedOutEl) signedOutEl.classList.remove("hidden");
+        if (signedInEl) signedInEl.classList.add("hidden");
+      }
+
+      updateDeveloperAccountButton();
+    }
+
+    // -------------------------------------------------------------
+    // SAHİPLİK VE YETKİ KONTROLÜ (Başka kullanıcıların editlemesini engelleme)
+    // -------------------------------------------------------------
+    function isCurrentUserAppOwner(app) {
+      if (!app) return false;
+      if (!currentUser) return false;
+
+      // 1. user_id eşleşmesi
+      if (app.user_id && app.user_id === currentUser.id) return true;
+
+      // 2. Henüz user_id kaydedilmemiş eski uygulamalar için stüdyo adı / e-posta kontrolü
+      const studioName = (currentProfile?.studio || currentUser.user_metadata?.studio_name || "").toLowerCase().trim();
+      const appDev = (app.dev || "").toLowerCase().trim();
+      if (studioName && (appDev === studioName || appDev === "muho41885" || appDev === "obsidex studio")) return true;
+      if (currentUser.email === "ziad.alakkam2012@gmail.com") return true;
+
+      return false;
+    }
+
+    // -------------------------------------------------------------
+    // GENEL GELİŞTİRİCİ PROFİLİ GÖRÜNTÜLEME (HERKESE AÇIK)
+    // -------------------------------------------------------------
+    async function viewDeveloperProfile(devName, devUserId) {
+      const decodedDev = decodeURIComponent(devName || "").trim();
+      const modal = document.getElementById("viewDeveloperModal");
+      if (!modal) return;
+
+      let devProfile = {
+        studio_name: decodedDev || "obsideX Studio",
+        contact_person: "Geliştirici Ekip",
+        country: "Türkiye",
+        email: "",
+        website: "",
+        logo_url: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=200&auto=format&fit=crop&q=80",
+        specialties: "Mobil Oyunlar, Modifikasyon, Özel Araçlar",
+        bio: (decodedDev === "obsideX Studio" || decodedDev === "Muho41885")
+          ? "obsideX Studio, sınırları zorlayan mobil projeler ve özel oyun modifikasyonları üreten bağımsız bir geliştirici stüdyosudur. Amacımız, oyuncular ve kullanıcılar için güvenli, hızlı ve kesintisiz dijital ürünler sunmaktır."
+          : `${decodedDev} bağımsız geliştirici profili. APKHub topluluğu için doğrulanmış mobil içerikler üretmektedir.`,
+        verified: true
+      };
+
+      if (supabaseClient) {
+        try {
+          let query = supabaseClient.from("developer_profiles").select("*");
+          if (devUserId) {
+            query = query.eq("user_id", devUserId);
+          } else {
+            query = query.ilike("studio_name", decodedDev);
+          }
+          const { data, error } = await query.maybeSingle();
+          if (!error && data) {
+            devProfile = { ...devProfile, ...data };
+          }
+        } catch (e) {
+          console.warn("Could not fetch remote dev profile:", e);
+        }
+      }
+
+      document.getElementById("viewDevTitle").innerText = devProfile.studio_name || decodedDev;
+      document.getElementById("viewDevLogo").src = devProfile.logo_url || "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=200&auto=format&fit=crop&q=80";
+      document.getElementById("viewDevContact").innerText = `Yetkili: ${devProfile.contact_person || devProfile.studio_name} · ${devProfile.country || "Türkiye"}`;
+      document.getElementById("viewDevBio").innerText = devProfile.bio || "Geliştirici hakkında detaylı bilgi bulunmuyor.";
+
+      const webLink = document.getElementById("viewDevWebsite");
+      if (devProfile.website) {
+        webLink.href = devProfile.website;
+        webLink.classList.remove("hidden");
+      } else {
+        webLink.classList.add("hidden");
+      }
+
+      const emailLink = document.getElementById("viewDevEmail");
+      if (devProfile.email) {
+        emailLink.href = `mailto:${devProfile.email}`;
+        emailLink.classList.remove("hidden");
+      } else {
+        emailLink.classList.add("hidden");
+      }
+
+      const specBox = document.getElementById("viewDevSpecialtiesBox");
+      if (devProfile.specialties) {
+        document.getElementById("viewDevSpecialties").innerText = devProfile.specialties;
+        specBox.classList.remove("hidden");
+      } else {
+        specBox.classList.add("hidden");
+      }
+
+      const allApps = loadApps();
+      const devApps = allApps.filter(a => {
+        if (devUserId && a.user_id && a.user_id === devUserId) return true;
+        return (a.dev || "").toLowerCase() === decodedDev.toLowerCase();
+      });
+
+      document.getElementById("viewDevAppCountBadge").innerText = `${devApps.length} uygulama`;
+      const grid = document.getElementById("viewDevAppsGrid");
+      if (devApps.length === 0) {
+        grid.innerHTML = `<p class="col-span-full text-xs text-slate-500 italic py-3">Bu geliştiricinin henüz listelenen başka uygulaması yok.</p>`;
+      } else {
+        grid.innerHTML = devApps.map(a => `
+          <div onclick="closeViewDeveloperModal(); openDetailModal('${a.id}')" class="flex items-center gap-3 p-2.5 rounded-xl border border-slate-200 hover:border-emerald-500 bg-white hover:bg-slate-50 cursor-pointer transition shadow-sm">
+            <img src="${a.icon}" alt="${a.name}" class="w-12 h-12 rounded-xl object-cover bg-slate-100" onerror="this.src='https://api.iconify.design/lucide:gamepad-2.svg?color=%2310b981';" />
+            <div class="flex-1 min-w-0">
+              <h4 class="text-xs font-bold text-slate-900 truncate">${a.name}</h4>
+              <p class="text-[10px] text-slate-500">${a.version} · ${a.size}</p>
+            </div>
+            <span class="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg">İncele</span>
+          </div>
+        `).join("");
+      }
+
+      const selfEditBox = document.getElementById("viewDevSelfEditBox");
+      if (currentUser && (devUserId === currentUser.id || decodedDev === currentProfile?.studio || decodedDev === "obsideX Studio")) {
+        selfEditBox.classList.remove("hidden");
+      } else {
+        selfEditBox.classList.add("hidden");
+      }
+
+      modal.classList.remove("hidden");
+    }
+
+    function closeViewDeveloperModal() {
+      document.getElementById("viewDeveloperModal").classList.add("hidden");
+    }
+
+    function viewDeveloperProfileFromModal() {
+      const apps = loadApps();
+      const app = apps.find(a => a.id === activeAppId);
+      if (!app) return;
+      viewDeveloperProfile(app.dev, app.user_id);
+    }
+
     const supabaseClient = (typeof window !== "undefined" && window.supabase)
       ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
       : null;
@@ -1444,6 +2016,7 @@
       try {
         const row = {
           id: String(app.id),
+          user_id: String(app.user_id || (currentUser ? currentUser.id : "")),
           name: app.name || "",
           dev: app.dev || "obsideX Studio",
           version: app.version || "1.0.0",
@@ -1483,6 +2056,7 @@
         if (!error && Array.isArray(data) && data.length > 0) {
           const remoteApps = data.map(row => ({
             id: String(row.id),
+            user_id: row.user_id || "",
             name: row.name,
             dev: row.dev,
             version: row.version,
@@ -1598,7 +2172,7 @@
           </div>
 
           <h3 class="font-bold text-xs sm:text-sm text-slate-900 truncate mb-0.5 group-hover:text-emerald-400 transition">${app.name}</h3>
-          <p class="text-[11px] text-slate-500 truncate mb-2.5">${app.dev}</p>
+          <p onclick="event.stopPropagation(); viewDeveloperProfile('${encodeURIComponent(app.dev)}', '${app.user_id || ''}')" class="text-[11px] text-emerald-600 hover:underline font-semibold truncate mb-2.5 cursor-pointer flex items-center gap-1"><i class="fa-solid fa-code text-[10px]"></i><span>${app.dev}</span></p>
 
           <div class="mt-auto flex items-center justify-between text-[11px] font-semibold text-slate-500 border-t border-slate-200/80 pt-2">
             <span class="flex items-center gap-1 text-emerald-400">
@@ -1679,6 +2253,12 @@
       document.getElementById("modalIcon").src = app.icon;
       document.getElementById("modalTitle").innerText = app.name;
       document.getElementById("modalDev").innerText = app.dev;
+      const isOwner = isCurrentUserAppOwner(app);
+      const editShortcutBtn = document.getElementById("modalEditShortcutBtn");
+      if (editShortcutBtn) {
+        if (isOwner) editShortcutBtn.classList.remove("hidden");
+        else editShortcutBtn.classList.add("hidden");
+      }
       document.getElementById("modalCategory").innerText = app.category;
       document.getElementById("modalVersionBadge").innerText = app.version;
       document.getElementById("modalRating").innerText = app.rating || "4.9";
@@ -1708,6 +2288,12 @@
 
     function shortcutEditCurrentApp() {
       if (!activeAppId) return;
+      const apps = loadApps();
+      const app = apps.find(a => a.id === activeAppId);
+      if (!app || !isCurrentUserAppOwner(app)) {
+        showToast("Bu uygulamayı yalnızca yayınlayan geliştirici düzenleyebilir!", "error");
+        return;
+      }
       const id = activeAppId;
       closeDetailModal();
       openEditModal(id);
@@ -1868,6 +2454,11 @@
       const app = apps.find(a => a.id === id);
       if (!app) return;
 
+      if (!isCurrentUserAppOwner(app)) {
+        showToast("Bu uygulamayı düzenleme yetkiniz yok! Yalnızca yayınlayan geliştirici düzenleyebilir.", "error");
+        return;
+      }
+
       const name = document.getElementById("editName").value.trim();
       const dev = document.getElementById("editDev").value.trim();
       const version = document.getElementById("editVersion").value.trim();
@@ -1944,6 +2535,12 @@
       if (!pendingDeleteAppId) return;
 
       let apps = loadApps();
+      const appToDelete = apps.find(a => a.id === pendingDeleteAppId);
+      if (appToDelete && !isCurrentUserAppOwner(appToDelete)) {
+        showToast("Bu uygulamayı silme yetkiniz yok!", "error");
+        closeDeleteModal();
+        return;
+      }
       apps = apps.filter(a => a.id !== pendingDeleteAppId);
       saveApps(apps);
       deleteAppFromSupabase(pendingDeleteAppId);
@@ -1992,6 +2589,12 @@
     async function handlePublish(e) {
       e.preventDefault();
 
+      if (!currentUser) {
+        showToast("Uygulama yayınlamak için önce Geliştirici Hesabınıza giriş yapmalısınız!", "error");
+        openAccountModal();
+        return;
+      }
+
       const name = document.getElementById("pubName").value.trim();
       const dev = document.getElementById("pubDev").value.trim();
       const version = document.getElementById("pubVersion").value.trim();
@@ -2029,8 +2632,9 @@
 
       const newApp = {
         id: "app-" + Date.now(),
+        user_id: currentUser ? currentUser.id : "",
         name,
-        dev,
+        dev: dev || (currentProfile?.studio || currentUser.user_metadata?.studio_name || "obsideX Studio"),
         version,
         category,
         size,
